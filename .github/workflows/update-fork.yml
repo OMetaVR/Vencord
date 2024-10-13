@@ -1,29 +1,45 @@
-name: Sync to Upstream
+name: Sync Fork
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs every day at midnight UTC
-  workflow_dispatch:
+    # Runs every day at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
-  sync_with_upstream:
+  sync_fork:
     runs-on: ubuntu-latest
-    name: Sync HEAD with upstream latest
+    name: Sync Fork with Upstream
 
     steps:
       # Step 1: Checkout your fork's main branch
-      - name: Checkout main branch
+      - name: Checkout Fork
         uses: actions/checkout@v3
         with:
-          ref: main
+          ref: main  # Replace with your default branch if different
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 2: Run the sync action
-      - name: Pull upstream changes
-        id: sync
-        uses: bdougie/Fork-Sync-With-Upstream-action@fork
-        with:
-          upstream_repository: Vendicated/Vencord  # Update to your upstream repo
-          upstream_branch: main
-          target_branch: main                     # Optional: defaults to checked-out branch
-          github_token: ${{ secrets.GITHUB_TOKEN }}  # Optional: for authenticated access
+      # Step 2: Add upstream remote
+      - name: Add Upstream Remote
+        run: git remote add upstream https://github.com/Vendicated/Vencord.git
+
+      # Step 3: Fetch upstream changes
+      - name: Fetch Upstream
+        run: git fetch upstream
+
+      # Step 4: Configure Git with committer identity
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Step 5: Merge upstream changes into main branch
+      - name: Merge Upstream Changes
+        run: |
+          git merge upstream/main --no-ff -m "Automated sync: Merge upstream changes"
+
+      # Step 6: Push changes to your fork
+      - name: Push Changes
+        run: git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
