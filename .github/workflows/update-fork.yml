@@ -17,11 +17,16 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 2: Configure Git with a user name and email
+      # Step 2: Configure Git with GitHub Actions bot credentials
       - name: Set up Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+        # Optional: Verify Git configuration
+      - name: Verify Git Configuration
+        run: |
+          git config user.name
+          git config user.email
 
       # Step 3: Add the upstream repository
       - name: Add upstream remote
@@ -34,7 +39,10 @@ jobs:
       # Step 5: Merge upstream/main into your fork's main branch
       - name: Merge upstream changes
         run: |
-          git merge upstream/main --allow-unrelated-histories --no-ff -m "Sync upstream changes"
+          git merge upstream/main --no-ff -m "Sync upstream changes"
+        # Optional: Output Git status for debugging
+      - name: Check Git Status
+        run: git status
 
       # Step 6: Push the merged changes back to your fork
       - name: Push changes to fork
